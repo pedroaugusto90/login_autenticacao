@@ -7,6 +7,9 @@ using System.Web;
 using System.Web.Mvc;
 using appLogin.Utils;
 using System.Security.Claims;
+using MySql.Data.MySqlClient;
+using System.Configuration;
+using System.Web.Services.Description;
 
 namespace appLogin.Controllers
 {
@@ -67,6 +70,26 @@ namespace appLogin.Controllers
             {
                 return View(viewmodel);
             }
+
+            //==========================================================================================================================================
+
+            MySqlConnection conexao = new MySqlConnection(ConfigurationManager.ConnectionStrings("conexao").ConnectionString);
+            try
+            {
+                conexao.Open();
+            }
+            catch(Exception e)
+            {
+                return RedirectToAction("Error", new(Message = e.Message));
+            }
+            finally
+            {
+                if (conexao.State == System.Data.ConnectionState.Open)
+                    conexao.Close();
+            }
+
+            //==========================================================================================================================================
+
             Usuario usuario = new Usuario();
             usuario = usuario.SelectUsuario(viewmodel.Login);
 
@@ -117,12 +140,8 @@ namespace appLogin.Controllers
                 return View();
             }
 
-
-
             var identity = User.Identity as ClaimsIdentity;
             var login = identity.Claims.FirstOrDefault(c => c.Type == "Login").Value;
-
-
 
             Usuario usuario = new Usuario();
             usuario = usuario.SelectUsuario(login);
@@ -148,7 +167,7 @@ namespace appLogin.Controllers
             usuario.UpdateSenha(usuario);
 
             TempData["MensagemLogin"] = "Senha alterada com sucesso!";
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Home"); 
         }
 
     }
